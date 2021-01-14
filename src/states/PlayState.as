@@ -78,6 +78,9 @@
 		protected var deathcounttext:BlText
 		protected var deathcountcontainer:BlContainer = new BlContainer();
 		
+		protected var pointtexts:Array = []
+		protected var pointcontainers:Array = [];
+		
 		protected var eraserLayerLock:int;  // The layer that we are currently erasing in
 		
 		//protected var overlay:BitmapData = new BitmapData(640,480,true, 0x0);
@@ -153,6 +156,20 @@
 			deathcounttext.y = 20;
 			deathcountcontainer.add(deathcounttext)
 			
+			for (var i:int = 0; i < ItemManager.counterHexes.length; i++) {
+				pointtexts[i] = new BlText(12, 100, 0xffffff,"right");
+				pointtexts[i].x = 523
+				pointtexts[i].y = 20;
+				pointcontainers[i] = new BlContainer();
+				pointcontainers[i].add(pointtexts[i])
+				
+				var counter:BlSprite = BlSprite.createFromBitmapData(ItemManager.createCounter(3, 5, ItemManager.counterHexes[i]));
+				counter.x = 626-4
+				counter.y = 24-3
+				pointcontainers[i].add(counter);
+				
+			}
+			
 			spectatingText = new BlText(12, 300, 16777215, "center", "system");
 			spectatingText.x = 197;
 			spectatingText.y = 4;
@@ -203,6 +220,17 @@
 					player.gy.push(ys[i]);
 				}
 			}
+		}
+		public function restorePoints(pxs:Array, pys:Array):void {			
+			for (var i:int = 0; i < pxs.length; i++)
+			{	
+				for (var j:int = 0; j < pxs[i].length; j++)
+				{
+					world.lookup.getCounter(pxs[i][j], pys[i][j]).collected = true;
+				}
+			}
+			player.pxs = pxs;
+			player.pys = pys;
 		}
 		
 		public function updateMinimap(xo:int,yo:int):void {
@@ -374,6 +402,10 @@
 				old != ItemId.RESET_ORANGE &&
 				old != ItemId.DOOR_ORANGE &&
 				old != ItemId.GATE_ORANGE &&
+				old != ItemId.COUNTER_INF &&
+				old != ItemId.COUNTER &&
+				old != ItemId.DOOR_COUNTER &&
+				old != ItemId.GATE_COUNTER &&
 				!ItemId.isBlockRotateable(old) &&
 				!ItemId.isBackgroundRotateable(old) &&
 				!ItemId.isNPC(old)) {
@@ -385,6 +417,22 @@
 			var pc:int = player.coins;
 			var ot_blue:int = bonusCoins;
 			var pc_blue:int = player.bcoins;
+			
+			
+			
+			if (old == ItemId.COUNTER) {
+				for each(var pp:Player in players) {
+					var px:Array = pp.pxs[world.lookup.getCounter(xo, yo).colourIndex] || new Array();
+					var py:Array = pp.pys[world.lookup.getCounter(xo, yo).colourIndex] || new Array();
+					for (var ip:int = 0; ip < px.length; ip++) {
+						if (px[ip] == xo && py[ip] == yo){
+							px.splice(ip, 1);
+							py.splice(ip, 1);
+						}
+					}
+				}
+			}
+			
 			
 			world.setTileComplex(layer,xo,yo,value,properties);
 			
@@ -476,6 +524,10 @@
 			bcointext.text = player.bcoins + "/" + bonusCoins
 			deathcounttext.text = player.deaths + "x";
 			
+			for (var i:int = 0; i < ItemManager.counterHexes.length; i++)
+				pointtexts[i].text = player.getPoints(i);
+			
+			
 			var specTarget:Player = target as Player;
 			if (specTarget != null) {
 				spectatingText.text = "Spectating" + 
@@ -537,6 +589,12 @@
 			var oldd:Number = world.showDeathGate;
 			world.showDeathGate = player.deaths;
 			if (world.overlaps(player)) world.showDeathGate = oldd;
+			
+			for (var j:int = 0; j < ItemManager.counterHexes.length; j++) {
+				var oldp:int = world.showPointGate[j];
+				world.showPointGate[j] = player.getPoints(j);
+				if (world.overlaps(player)) world.showPointGate[j] = oldp;
+			}
 			
 			
 			for(var i:int = 0; i<particles.length-1;i++)
@@ -811,6 +869,19 @@
 					break;
 				}
 				
+				case ItemId.COUNTER_INF:
+				case ItemId.COUNTER: {
+					Bl.data.counter_colour = world.lookup.getCounter(x, y).colourIndex;
+					Bl.data.counter_value = world.lookup.getCounter(x, y).value;
+					break;
+				}
+				case ItemId.DOOR_COUNTER:
+				case ItemId.GATE_COUNTER:{
+					Bl.data.counter_colour = world.lookup.getCounter(x, y).colourIndex;
+					Bl.data.counter_doorgate_value = world.lookup.getCounter(x, y).value;
+					break;
+				}
+				
 				case ItemId.WORLD_PORTAL: {
 					Bl.data.world_portal_id = parseInt(world.lookup.getWorldPortal(x, y).id);
 					Bl.data.world_portal_target = world.lookup.getWorldPortal(x, y).target;
@@ -936,7 +1007,6 @@
 			if (Bl.data.brick != world.getTile(layer, x, y)) return false;
 			if (ItemId.isBackgroundRotateable(Bl.data.brick)) return false;
 			if (ItemId.isBlockRotateable(Bl.data.brick)) return false;
-			
 			switch(Bl.data.brick){
 				case ItemId.COINDOOR:
 				case ItemId.COINGATE:
@@ -975,6 +1045,12 @@
 				case ItemId.PORTAL_INVISIBLE:
 				case ItemId.TEXT_SIGN:
 				case ItemId.PORTAL:		
+					return false;
+					
+				case ItemId.COUNTER_INF:
+				case ItemId.COUNTER:
+				case ItemId.DOOR_COUNTER:
+				case ItemId.GATE_COUNTER:
 					return false;
 				
 				case ItemId.WORLD_PORTAL_SPAWN:
@@ -1083,6 +1159,9 @@
 			if(player.deaths > 0) { deathcountcontainer.draw(target, 0,usedup + min); usedup += 15; }
 			if(totalCoins > 0) { cointextcontainer.draw(target, 0,usedup + min); usedup += 15; }
 			if(bonusCoins > 0) { bcointextcontainer.draw(target,0,usedup + min); usedup += 15; }
+			for (var i:int = 0; i < ItemManager.counterHexes.length; i++) {
+				if (player.getPoints(i) > 0) { pointcontainers[i].draw(target,0,usedup + min); usedup += 15; }
+			}
 			
 			if (isPlayerSpectating) {
 				spectatingText.draw(target, 0, 0);
@@ -1410,6 +1489,17 @@
 					break;
 				}
 					
+				case ItemId.COUNTER_INF:
+				case ItemId.COUNTER: {
+					setTile(0,x,y,id,{value:Bl.data.counter_value, id:Bl.data.counter_colour});
+					break;
+				}
+				case ItemId.DOOR_COUNTER:
+				case ItemId.GATE_COUNTER: {
+					setTile(0,x,y,id,{value:Bl.data.counter_doorgate_value, id:Bl.data.counter_colour});
+					break;
+				}
+				
 				case ItemId.PORTAL_INVISIBLE:
 				case ItemId.PORTAL: {
 					rotation = world.lookup.getPortal(x, y).rotation;

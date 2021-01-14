@@ -91,6 +91,8 @@ package
 		
 		public static var isWorldManagerOpen:Boolean = false;
 		
+		public static var variant:int = Math.floor(Math.random() * 3);
+		
 		public static function isValidWorldIndex(id:int):Boolean 
 		{
 			return !isNaN(id)

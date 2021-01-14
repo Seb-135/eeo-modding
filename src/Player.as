@@ -102,6 +102,9 @@ package
 		public var gy:Array = new Array();
 		public var bx:Array = new Array();
 		public var by:Array = new Array();
+		//arrays of arrays of circle counter coordinates
+		public var pxs:Array = new Array();
+		public var pys:Array = new Array();
 		
 		public var worldSpawn:int = 0;
 		
@@ -157,6 +160,14 @@ package
 		}
 		public function get bcoins():int {
 			return _bcoins.value;
+		}
+		
+		public var _points:Array = new Array();
+		public function setPoints(value:int, colourIndex:int = 0):void {
+			_points[colourIndex] = value < 0 ? 0 : value; 
+		}
+		public function getPoints(colourIndex:int = 0):int {
+			return _points[colourIndex];
 		}
 		
 		private var _inGodMode:SecureBoolean = new SecureBoolean("GodMode");
@@ -1258,6 +1269,8 @@ package
 			collideWithCrownDoorGate = false;
 			collideWithSilverCrownDoorGate = false;
 			deaths = 0;
+			for (var i:int = 0; i < ItemManager.counterHexes.length; i++)
+				setPoints(0, i);
 			resetCoins();
 			resetDeath();
 			resetEffects();
@@ -1274,7 +1287,10 @@ package
 			gy = new Array();
 			bx = new Array();
 			by = new Array();
+			pxs = new Array();
+			pys = new Array();
 			Global.playState.getWorld().lookup.resetSecrets();
+			Global.playState.getWorld().lookup.resetCounters();
 			Global.base.ui2instance.playerMapEnabled = false;
 			Global.base.ui2instance.configureInterface();
 			if(!isFlying && !clear)
@@ -1385,20 +1401,54 @@ package
 			
 			if (zombie) {
 				target2.copyPixels(bmd, new Rectangle(26 * 87, rect2.y, rect2.width, rect2.height), point2);
-			} else {
-				if (frame == ItemId.SMILEY_PLATINUM_SPENDER) {
-					var time:int = getTimer() + id * 400; // current ms, offset by user id to desync players
-					var msPer:int = 90; // ms per frame
-					var num:int = ItemManager.smileyPlatinumSpenderBMD.width / 26; // number of frames
-					var extra:int = 2920; // extra ms to stay on first frame
-					var frame:int = Math.max(0, (time % (msPer * num + extra) - extra) / msPer);
-					target2.copyPixels(ItemManager.smileyPlatinumSpenderBMD, new Rectangle(frame * 26, rect2.y, rect2.width, rect2.height), point2);
-				} else {
-					target2.copyPixels(bmd, rect2, point2);
+			} else{
+				switch(frame) {
+					case ItemId.SMILEY_PLATINUM_SPENDER: {
+						animateSmiley(target2, point2, ItemManager.smileyPlatinumSpenderBMD, 90, 2920);
+						break;
+					}
+					case 188: {
+						switch(Global.variant) {
+							case 0: {
+								(rect2.y == 0 ? ItemManager.sprBonusCoin : ItemManager.sprCoin).drawPoint(target2, new Point(point2.x + 5, point2.y + 5), ((world.offset >> 0) + (x >> 4) + (y >> 4)) % 12);
+								break;
+							}
+							case 1: {
+								(rect2.y == 0 ?
+								(switches[0] ? ItemManager.sprSwitchDOWN : ItemManager.sprSwitchUP) :
+								(world.orangeSwitches[0] ? ItemManager.sprOrangeSwitchDOWN : ItemManager.sprOrangeSwitchUP))
+								.drawPoint(target2, new Point(point2.x + 5, point2.y + 5), 0);
+								break;
+							}
+							default: {
+								rect2.y == 0 ?
+								(ItemManager.sprEffect.drawPoint(target2, new Point(point2.x + 5, point2.y + 5), [7, 0, 22][jumpBoost])) :
+								(maxJumps == 1 ? 
+									(ItemManager.sprEffect.drawPoint(target2, new Point(point2.x + 5, point2.y + 5), 16)) :
+									(ItemManager.sprMultiJumps.drawPoint(target2, new Point(point2.x + 5, point2.y + 5), maxJumps == 1000 || maxJumps == 0 ? maxJumps : maxJumps - jumpCount))
+								);
+								break;
+							}
+						}
+						break;
+					}
+					default: {
+						target2.copyPixels(bmd, rect2, point2);
+						break;
+					}
 				}
+				
 			}
 			
 			if (deg != 0) target.copyPixels(rotateBitmapData(target2, deg), target2.rect, point);
+		}
+		
+		private function animateSmiley(target:BitmapData, point:Point, framesBmd:BitmapData, msPer:int, extra:int):void 
+		{
+			var time:int = getTimer() + id * 400; // current ms, offset by user id to desync players
+			var num:int = framesBmd.width / 26; // number of frames
+			var frame:int = Math.max(0, (time % (msPer * num + extra) - extra) / msPer);
+			target.copyPixels(framesBmd, new Rectangle(frame * 26, rect2.y, rect2.width, rect2.height), point);
 		}
 		
 		private function playLevitationAnimation(target:BitmapData, ox:int, oy:int):void {

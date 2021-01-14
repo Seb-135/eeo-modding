@@ -423,7 +423,7 @@ package ui.campaigns {
 				switchTo(PAGE_TT);
 			});
 			openLevelButton.addEventListener(MouseEvent.CLICK, function():void {
-				file.browse([new FileFilter("EE Level (.eelvl, .eelvls)", "*.eelvl;*.eelvls")]);
+				file.browse([new FileFilter("EE Level (.eelvl, .eelvls), EE Counter Level (.counterlvl, .counterlvls)", "*.eelvl;*.eelvls;*.counterlvl;*.counterlvls")]);
 				file.addEventListener(Event.SELECT, onFileSelected);
 				//var tut:* = new Tutorial0();
 				//onFileLoaded(null, tut);
@@ -538,7 +538,7 @@ package ui.campaigns {
 		public function uploadWorld():void {
 			unsavedPrompt("Are you sure you want to upload a new sub-world?\nUnsaved changes in this world WILL be saved!", "Upload",
 				function():void {
-					file2.browse([new FileFilter("EE Level (.eelvl)", "*.eelvl")]);
+					file2.browse([new FileFilter("EE Level (.eelvl), EE Counter Level (.counterlvl) ", "*.eelvl;*.counterlvl")]);
 					file2.addEventListener(Event.SELECT, onFileSelected2);
 				});
 		}
@@ -571,7 +571,7 @@ package ui.campaigns {
 					var entryContent:ByteArray = zip.getInput(entry);
 					var fileType:String = entry.name.substring(entry.name.indexOf(".") + 1);
 					
-					if (fileType == "eelvl") {
+					if (fileType == "eelvl" || fileType == "counterlvl") {
 						var wd:ByteArray = new ByteArray();
 						wd.writeBytes(entryContent, 0, entryContent.length);
 						Global.worlds.push(wd);

@@ -652,6 +652,9 @@ package  {
 					progress.gy = player.gy;
 					progress.bx = player.bx; //blue coins
 					progress.by = player.by;
+					progress.pxs = player.pxs;
+					progress.pys = player.pys;
+					progress.points = player._points;
 					progress.switches = player.switches;
 					progress.hascrown = player.hascrown;
 					progress.hascrownsilver = player.hascrownsilver;
@@ -962,6 +965,10 @@ package  {
 					case ItemId.RESET_ORANGE:
 					case ItemId.DOOR_ORANGE:
 					case ItemId.GATE_ORANGE:
+					case ItemId.DOOR_COUNTER:
+					case ItemId.GATE_COUNTER:
+					case ItemId.COUNTER_INF:
+					case ItemId.COUNTER:
 					case 1520:
 					case 1000: {
 						showSpecialProperties(brick, !bselector.visible || !bselector.currentPageHasBlock(brick), hotbar);
@@ -1040,6 +1047,18 @@ package  {
 					specialproperties = new CoinProperties(brick);
 					break;
 				}
+				
+				case ItemId.DOOR_COUNTER:
+				case ItemId.GATE_COUNTER:{
+					specialproperties = new CounterDoorGateProperties(brick);
+					break;
+				}
+				case ItemId.COUNTER_INF:
+				case ItemId.COUNTER:{
+					specialproperties = new CounterProperties();
+					break;
+				}
+				
 				case 1000:{
 					specialproperties = new LabelProperties();
 					break;
@@ -1491,6 +1510,11 @@ package  {
 					return;
 				}
 				base.campaigns.joinWorld(parseInt(cmd[1]));
+			}
+			
+			else if (cmdName == "/variant") {
+				if (cmd.length < 2) return;
+				Global.variant = parseInt(cmd[1]);
 			}
 			
 			else if (cmdName == "/summon" || cmdName == "/spawn") {

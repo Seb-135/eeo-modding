@@ -88,7 +88,7 @@ package{
 				Global.ui2.settingsMenu.levelOptions.backgroundColorSelector.handleBackgroundChange(bgColor);
 		}
 		
-		private var offset:Number = 0;
+		public var offset:Number = 0;
 		
 		private var keys:Object = {
 			"red": new SecureBoolean("RedKey"),
@@ -135,6 +135,9 @@ package{
 		public var showCoinGate:int = 0;
 		public var showBlueCoinGate:int = 0;
 		public var showDeathGate:int = 0;
+		
+		public var showPointGate:Array = [];
+		
 		public var hideTimedoorOffset:Number = 0;
 		public var hideTimedoorTimer:Number = new Date().time;
 		
@@ -271,6 +274,11 @@ package{
 						rotation = Global.newData.readInt();
 						id = Global.newData.readInt();
 						tar = Global.newData.readInt();
+					} else if (type === ItemId.COUNTER_INF || type === ItemId.COUNTER
+					|| type === ItemId.DOOR_COUNTER || type === ItemId.GATE_COUNTER) {
+						rotation = Global.newData.readInt();
+						id = Global.newData.readInt();
+						trace("counter", rotation, id);
 					} else if (type === ItemId.TEXT_SIGN) {
 						sign_text = Global.newData.readUTF();
 						sign_type = Global.newData.readInt();
@@ -355,8 +363,17 @@ package{
 							case ItemId.PORTAL_INVISIBLE:
 							case ItemId.PORTAL:{
 								lookup.setPortal(nx, ny, new Portal(id, tar, rotation, type));
-								break
+								break;
 							}
+							
+							case ItemId.COUNTER:
+							case ItemId.COUNTER_INF:
+							case ItemId.DOOR_COUNTER:
+							case ItemId.GATE_COUNTER: {
+								lookup.setCounter(nx, ny, rotation, id);
+								break;
+							}
+								
 							case ItemId.WORLD_PORTAL: {
 								lookup.setWorldPortal(nx, ny, new WorldPortal(target_world, tar));
 								break;
@@ -492,6 +509,17 @@ package{
 					}
 					break;
 				}
+				
+				case ItemId.COUNTER_INF:
+				case ItemId.COUNTER:
+				case ItemId.DOOR_COUNTER:
+				case ItemId.GATE_COUNTER: {
+					if(properties.value != null && properties.id != null) {
+						lookup.setCounter(x, y, properties.value, properties.id);
+					}
+					break;
+				}
+				
 				case ItemId.WORLD_PORTAL:{
 					if (properties.target != null && properties.spawnid != null) {
 						lookup.setWorldPortal(x, y, new WorldPortal(properties.target, properties.spawnid));
@@ -733,7 +761,16 @@ package{
 						case ItemId.COINGATE: 		if (lookup.getInt(cx, cy) >  /*pl.coins*/ (pl.isme ? showCoinGate : pl.coins))  continue; break;
 						case ItemId.BLUECOINGATE: 	if (lookup.getInt(cx, cy) >  /*pl.bcoins*/ (pl.isme ? showBlueCoinGate : pl.bcoins)) continue; break;
 						case ItemId.DEATH_GATE: 	if (lookup.getInt(cx, cy) >  /*pl.deaths*/ (pl.isme ? showDeathGate : pl.deaths)) continue; break;
-					
+						
+						case ItemId.DOOR_COUNTER:{
+							var doorCounter:CounterLookup = lookup.getCounter(cx, cy);
+							if (doorCounter.value <= (pl.isme ? showPointGate[doorCounter.colourIndex] : pl.getPoints(doorCounter.colourIndex))) continue; break;
+						}
+						case ItemId.GATE_COUNTER:{
+							var gateCounter:CounterLookup = lookup.getCounter(cx, cy);
+							if (gateCounter.value >  (pl.isme ? showPointGate[gateCounter.colourIndex] : pl.getPoints(gateCounter.colourIndex))) continue; break;
+						}
+						
 						case ItemId.TEAM_DOOR: if (pl.team == lookup.getInt(cx, cy)) continue; break;
 						case ItemId.TEAM_GATE: if (pl.team != lookup.getInt(cx, cy)) continue; break;
 						
@@ -1214,6 +1251,42 @@ package{
 								// Locked
 								ItemManager.sprBlueCoinGates.drawPoint(target, point, lookup.getInt(cx, cy) - player.bcoins)
 							}
+							continue;
+						}
+						
+						case ItemId.DOOR_COUNTER:{
+							// Open / Invisible
+							var doorCounter:CounterLookup = lookup.getCounter(cx, cy);
+							var doorPoints:int = player.getPoints(doorCounter.colourIndex);
+							if (doorCounter.value <= doorPoints) {
+								ItemManager.sprDoorCountersOpen[doorCounter.colourIndex].drawPoint(target, point, doorCounter.value)
+							} else {
+								// Locked
+								//ItemManager.sprCounterDoorGates.drawPoint(target, point, lookup.getInt(cx, cy) - 5)
+								ItemManager.sprDoorCountersClosed[doorCounter.colourIndex].drawPoint(target, point, doorCounter.value - doorPoints)
+							}
+							continue;
+						}
+						case ItemId.GATE_COUNTER:{
+							// Closed / Visible
+							var gateCounter:CounterLookup = lookup.getCounter(cx, cy);
+							var gatePoints:int = player.getPoints(gateCounter.colourIndex);
+							if (gateCounter.value <= gatePoints) {
+								ItemManager.sprGateCountersClosed[gateCounter.colourIndex].drawPoint(target, point, gateCounter.value)
+							} else {
+								// Locked
+								//ItemManager.sprCounterDoorGates.drawPoint(target, point, lookup.getInt(cx, cy) - 5)
+								ItemManager.sprGateCountersOpen[gateCounter.colourIndex].drawPoint(target, point, gateCounter.value - gatePoints)
+							}
+							continue;
+						}
+						case ItemId.COUNTER: {
+							if(!lookup.getCounter(cx, cy).collected || Bl.data.canEdit)
+								ItemManager.sprCounters[lookup.getCounter(cx, cy).colourIndex].drawPoint(target, point, lookup.getCounter(cx, cy).value+99, lookup.getCounter(cx, cy).collected);
+							continue;
+						}
+						case ItemId.COUNTER_INF:{
+							ItemManager.sprInfCounters[lookup.getCounter(cx, cy).colourIndex].drawPoint(target, point, lookup.getCounter(cx, cy).value+99);
 							continue;
 						}
 						

@@ -41,8 +41,8 @@ package {
 			}
 		}
 		
-		private function spawnCoinPatricle(cx:int, cy:int, blue:Boolean):void {
-			var frame:int = blue? 5 : Random.nextInt(1, 4); // [1, 2, 3]
+		private function spawnCoinPatricles(cx:int, cy:int, frame:int, amt:int):void {
+			for (var k:int = 0; k < amt; k++)
 			world.addParticle(new Particle(world, frame, (cx * 16) + 6, (cy * 16) + 6, Math.random() - (Math.random() / 10), Math.random() - (Math.random() / 10), 0.023, 0.023, Math.random() * 360, Math.random() * 90));
 		}
 		
@@ -58,32 +58,40 @@ package {
 				case 110:
 				case 111: {
 					if(isme && current != 110 && current != 111) {
-					SoundManager.playMiscSound(SoundId.COIN);
-					world.setTileComplex(0, cx, cy, current + 10, null); // 100 -> 110; 101 -> 111
-					if (current == ItemId.COIN_GOLD) {
-						coins++;
-						gx.push(cx)
-						gy.push(cy);
-					}
-					else {
-						bcoins++;
-						bx.push(cx);
-						by.push(cy);
-					}
-					coinCountChanged = true;
-					if (!Global.base.settings.particles) break;
-					for (var k:int = 0; k < 4; k++)
-						spawnCoinPatricle(cx, cy, current == ItemId.COIN_BLUE);
-					} else {
-						if ((current == ItemId.COIN_GOLD || current == 110) && (gx.indexOf(cx) == -1 || gy.indexOf(cy) == -1)) {
+						SoundManager.playMiscSound(SoundId.COIN);
+						world.setTileComplex(0, cx, cy, current + 10, null); // 100 -> 110; 101 -> 111
+						if (current == ItemId.COIN_GOLD) {
 							coins++;
 							gx.push(cx)
 							gy.push(cy);
 						}
-						else if ((current == ItemId.COIN_BLUE || current == 111) && (bx.indexOf(cx) == -1 || by.indexOf(cy) == -1)) {
+						else {
 							bcoins++;
 							bx.push(cx);
 							by.push(cy);
+						}
+						coinCountChanged = true;
+						if (!Global.base.settings.particles) break;
+							spawnCoinPatricles(cx, cy, current == ItemId.COIN_BLUE ? 5 : Random.nextInt(1, 4), 4);
+					} else if (!isme){
+						var foundc:Boolean = false;
+						for (var j:int = 0; j < gx.length; i++) {
+							if (gx[i] == cx && gy[i] == cy) {
+								found = true;
+								break;
+							}
+						}
+						if (!found) {
+							if (current == ItemId.COIN_GOLD || current == 110) {
+								coins++;
+								gx.push(cx)
+								gy.push(cy);
+							}
+							else if (current == ItemId.COIN_BLUE || current == 111) {
+								bcoins++;
+								bx.push(cx);
+								by.push(cy);
+							}
 						}
 					}
 					break;
@@ -114,7 +122,8 @@ package {
 					}
 				}
 				
-				if(!isgodmode) {				
+				if (!isgodmode) {
+					var counter:CounterLookup;
 					switch(current) {
 						case ItemId.CROWN: 
 							if (!hascrown && !isgodmode) {
@@ -135,6 +144,45 @@ package {
 							var enableOrangeSwitch: Boolean = !this.world.orangeSwitches[osid];
 							state.pressOrangeSwitch(osid, enableOrangeSwitch);
 							break;
+							
+						case ItemId.COUNTER_INF: {
+							counter = world.lookup.getCounter(cx, cy);
+							setPoints(getPoints(counter.colourIndex) + counter.value, counter.colourIndex);
+							break;
+						}
+						
+						case ItemId.COUNTER: {
+							counter = world.lookup.getCounter(cx, cy);
+							
+							if (!pxs[counter.colourIndex]) pxs[counter.colourIndex] = new Array();
+							if (!pys[counter.colourIndex]) pys[counter.colourIndex] = new Array();
+							var px:Array = pxs[counter.colourIndex];
+							var py:Array = pys[counter.colourIndex];
+							
+							if(isme && !counter.collected) {
+								counter.collected = true;
+								SoundManager.playMiscSound(SoundId.COIN);
+								setPoints(getPoints(counter.colourIndex) + counter.value, counter.colourIndex);
+								spawnCoinPatricles(cx, cy, 4, 4);
+								px.push(cx);
+								py.push(cy);
+							} else if (!isme) {
+								var found:Boolean = false;
+								for (var i:int = 0; i < px.length; i++) {
+									if (px[i] == cx && py[i] == cy) {
+										found = true;
+										break;
+									}
+								}
+								if(!found) {
+									setPoints(getPoints(counter.colourIndex) + counter.value, counter.colourIndex);
+									px.push(cx);
+									py.push(cy);
+								}
+							}
+							
+							break;
+						}
 						
 						case ItemId.RESET_PURPLE:
 							var rsid:int = world.lookup.getInt(cx, cy);

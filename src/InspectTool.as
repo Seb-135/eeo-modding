@@ -96,6 +96,10 @@ package
 				return "\nMorph:\nVariant: " + world.lookup.getSignType(x, y);
 			}
 			
+			else if (block == ItemId.COUNTER || block == ItemId.COUNTER_INF) {
+				return "\nColour index: " + world.lookup.getCounter(x, y).colourIndex;
+			}
+			
 			return "";
 		}
 		

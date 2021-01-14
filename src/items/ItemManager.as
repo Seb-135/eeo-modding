@@ -103,6 +103,9 @@ package items
 		[Embed(source="/../media/blocks_goldeneasteregg.png")] private static var blocksGoldenEasterEggBM:Class;
 		public static var blocksGoldenEasterEggBMD:BitmapData = new blocksGoldenEasterEggBM().bitmapData;
 		
+		[Embed(source="/../media/blocks_counter.png")] private static var counterBlocksBM:Class;
+		public static var counterBlocksBMD:BitmapData = new counterBlocksBM().bitmapData;
+		
 		// ===========
 		
 		private static var bounds:Array = [];
@@ -338,6 +341,16 @@ package items
 		public static var sprShadowM:BlockSprite = new BlockSprite(shadowBlocksBMD, 38, 0, 16, 16, 4, false);
 		public static var sprShadowN:BlockSprite = new BlockSprite(shadowBlocksBMD, 42, 0, 16, 16, 4, false);
 		
+		public static var counterHexes:Array =    [0xFFFFFF, 0x505050, 0xFF5050, 0x50FF50, 0x5050FF, 0x50FFFF, 0xFF50FF,  0xFFFF50, /*0xC8A2C8*/];
+		public static var counterHexNames:Array = ["White",  "Black",  "Red",    "Green",  "Blue",   "Cyan",   "Magenta", "Yellow", /*"lilac"*/];
+		public static var sprCounters:Vector.<BlockSprite> = new Vector.<BlockSprite>;
+		public static var sprInfCounters:Vector.<BlockSprite> = new Vector.<BlockSprite>;
+		
+		public static var sprDoorCountersClosed:Vector.<BlockSprite> = new Vector.<BlockSprite>;
+		public static var sprDoorCountersOpen:Vector.<BlockSprite> = new Vector.<BlockSprite>;
+		public static var sprGateCountersClosed:Vector.<BlockSprite> = new Vector.<BlockSprite>;
+		public static var sprGateCountersOpen:Vector.<BlockSprite> = new Vector.<BlockSprite>;
+		
 		public static function init():void
 		{
 			/*** Define and declare smilies ***/
@@ -540,6 +553,9 @@ package items
 			addSmiley(185,  "Robot Mk II", "", smileysBMD, "smileyrobot2");
 			addSmiley(186,  "Black Dragon", "", smileysBMD, "smileydragonblack");
 			addSmiley(187,  "Silver Dragon", "", smileysBMD, "smileydragonsilver");
+			
+			addSmiley(188,  "???", "", smileysBMD, "");
+			addSmiley(189,  "owo what's this", "", smileysBMD, "unobtainable");
 			
 			/*** Define and declare auras ***/
 			addAuraColor(0, "White", "");
@@ -806,6 +822,13 @@ package items
 			switches.addBrick(createBrick(ItemId.GATE_ORANGE, ItemLayer.DECORATION, doorBlocksBMD, "brickswitchorange","", ItemTab.ACTION, false, false, 38, 0xFFD7642F, ["Switch", "Gate", "Orange"]));
 			switches.addBrick(createBrick(ItemId.DOOR_ORANGE, ItemLayer.DECORATION, doorBlocksBMD, "brickswitchorange","", ItemTab.ACTION, false, false, 39, 0xFFD7642F, ["Switch", "Door", "Orange"]));
 			brickPackages.push(switches);
+			
+			var counters:ItemBrickPackage = new ItemBrickPackage("counters", "Counters", ["Points", "Lock"]);
+			counters.addBrick(createBrick(ItemId.COUNTER_INF, ItemLayer.DECORATION, counterBlocksBMD, "", "adds or subtracts a player's points of a specified colour.\nreusable", ItemTab.ACTION, false, true, 0, 0x0, ["Collect", "Value", "Money"]));
+			counters.addBrick(createBrick(ItemId.COUNTER, ItemLayer.DECORATION, counterBlocksBMD, "", "adds or subtracts a player's points of a specified colour.\nusable once, like coins", ItemTab.ACTION, false, true, 1, 0x0, ["Collect", "Value", "Money"]));
+			counters.addBrick(createBrick(ItemId.GATE_COUNTER, ItemLayer.DECORATION, counterBlocksBMD, "", "", ItemTab.ACTION, false, false, 6, 0x0, ["Gate"]));
+			counters.addBrick(createBrick(ItemId.DOOR_COUNTER, ItemLayer.DECORATION, counterBlocksBMD, "", "", ItemTab.ACTION, false, false, 7, 0x0, ["Door"]));
+			brickPackages.push(counters);
 			
 			var death:ItemBrickPackage = new ItemBrickPackage("death", "Death Doors/Gates (+10)", ["Lock", "Die", "Skull", "Curse"]);
 			death.addBrick(createBrick(ItemId.DEATH_GATE, ItemLayer.DECORATION, blocksBMD, "brickdeathdoor","", ItemTab.ACTION, false, false, 198, 0xFFA9A9A9, ["Gate", "Off"]));
@@ -2012,6 +2035,68 @@ package items
 			// forgroundBricksBMD: 311
 			// specialBricksBMD: 797
 			
+			for each(var hex:int in counterHexes) {
+				var infCounterBMD:BitmapData = createCounter(2, 4, hex);
+				var counterBMD:BitmapData = createCounter(3, 5, hex);
+				
+				var doorOpenBMD:BitmapData = createCounter(12, 14, hex);
+				var doorClosedBMD:BitmapData = createCounter(9, 11, hex);
+				var gateOpenBMD:BitmapData = createCounter(8, 10, hex);
+				var gateClosedBMD:BitmapData = createCounter(13, 15, hex);
+				
+				var longICntBMD:BitmapData = new BitmapData(16*199, 16, true, 0x0);
+				var longCntBMD:BitmapData = new BitmapData(16*199, 16, true, 0x0);
+				
+				var longDOpBMD:BitmapData = new BitmapData(16*1000, 16, true, 0x0);
+				var longDClBMD:BitmapData = new BitmapData(16*1000, 16, true, 0x0);
+				var longGOpBMD:BitmapData = new BitmapData(16*1000, 16, true, 0x0);
+				var longGClBMD:BitmapData = new BitmapData(16*1000, 16, true, 0x0);
+				
+				for (var b:int = -99; b <= 99; b++) {
+					var m1:Matrix = new Matrix();
+					m1.translate((b+99)*16, 0);
+					var counterText:Bitmap = createBlockText(b, true);
+					
+					longICntBMD.copyPixels(infCounterBMD, infCounterBMD.rect, new Point((b + 99) * 16, 0));
+					longCntBMD.copyPixels(counterBMD, counterBMD.rect, new Point((b + 99) * 16, 0));
+					
+					longICntBMD.draw(counterText, m1);
+					longCntBMD.draw(counterText, m1);
+				}
+				sprInfCounters.push(new BlockSprite(longICntBMD, 0, 0, 16, 16, longICntBMD.width / 16, true));
+				sprCounters.push(new BlockSprite(longCntBMD, 0, 0, 16, 16, longCntBMD.width / 16, true, true));
+				
+				for (var c:int = 0; c < 1000; c++) {
+					var m2:Matrix = new Matrix();
+					m2.translate(c*16, 0);
+					var counterDGText:Bitmap = createBlockText(c);
+					
+					longDOpBMD.copyPixels(doorOpenBMD, doorOpenBMD.rect, new Point(c * 16, 0));
+					longDClBMD.copyPixels(doorClosedBMD, doorClosedBMD.rect, new Point(c * 16, 0));
+					
+					longGOpBMD.copyPixels(gateOpenBMD, gateOpenBMD.rect, new Point(c * 16, 0));
+					longGClBMD.copyPixels(gateClosedBMD, gateClosedBMD.rect, new Point(c * 16, 0));
+					
+					
+					longDClBMD.draw(counterDGText, m2);
+					longGOpBMD.draw(counterDGText, m2);
+					
+					
+					counterDGText.filters = [];
+					counterDGText.bitmapData.draw(counterDGText, null, new ColorTransform(0.5, 0.5, 0.5));
+					counterDGText.filters = [new GlowFilter(0x000000, 1, 2, 2, 2, 3)];
+					
+					longDOpBMD.draw(counterDGText, m2);
+					longGClBMD.draw(counterDGText, m2);
+				}
+				sprDoorCountersOpen.push(new BlockSprite(longDOpBMD, 0, 0, 16, 16, longDOpBMD.width/16));
+				sprDoorCountersClosed.push(new BlockSprite(longDClBMD, 0, 0, 16, 16, longDClBMD.width/16));
+				sprGateCountersOpen.push(new BlockSprite(longGOpBMD, 0, 0, 16, 16, longGOpBMD.width/16));
+				sprGateCountersClosed.push(new BlockSprite(longGClBMD, 0, 0, 16, 16, longGClBMD.width/16));
+			}
+			
+			
+			
 			for (var a:int = 0; a <= 1000; a++)
 			{
 				effectMultiJumpsBMD.copyPixels(bmdBricks[ItemId.EFFECT_MULTIJUMP], bmdBricks[ItemId.EFFECT_MULTIJUMP].rect, new Point(16 * a, 0));
@@ -2088,7 +2173,7 @@ package items
 			sprOrangeSwitchDOWN = new BlockSprite(switchOrangeSwitchDownBMD, 0, 0, 16, 16, switchOrangeSwitchDownBMD.width/16, true); // down
 			sprOrangeSwitchRESET = new BlockSprite(switchOrangeSwitchResetBMD, 0, 0, 16, 16, switchOrangeSwitchResetBMD.width/16, true); // reset
 			sprMultiJumps = new BlockSprite(effectMultiJumpsBMD, 0, 0, 16, 16, effectMultiJumpsBMD.width / 16, true);
-				
+			
 			trace("Inited", brickPackages.length,"packages with", totalBricks , "bricks,", totalNpcs, "npcs,",totalSmilies, "smilies and", totalAuraShapes, "auras");
 			
 			//fill bmdBricks with default data (used when people log into a world with bricks that have not been released yet. 
@@ -2098,10 +2183,23 @@ package items
 			}
 		}
 		
-		private static function createBlockText(i:int):Bitmap {
+		public static function createCounter(baseOffset:int, overlayOffset:int, colour:int, width:int = 16):BitmapData {
+			var base:BitmapData = new BitmapData(width, 16, true, 0x0);
+			var overlay:BitmapData = new BitmapData(width, 16, true, 0x0);
+			
+			base.copyPixels(counterBlocksBMD, new Rectangle(16 * baseOffset, 0, width, 16), new Point(0, 0));
+			overlay.copyPixels(counterBlocksBMD, new Rectangle(16 * overlayOffset, 0, width, 16), new Point(0, 0));
+			
+			base = AnimationManager.colorize(base, colour);
+			return AnimationManager.combine(base, overlay);
+		}
+		
+		private static function createBlockText(i:int, useSign:Boolean = false):Bitmap {
 			
 			var blockText:BitmapData = new BitmapData(16, 16, true, 0x0);
 			var offsetX:int = 1;
+			var negative:Boolean = i < 0;
+			if (negative) i *= -1;
 			
 			//Use infinite symbol if i == 1000
 			if (i == 1000) {
@@ -2118,6 +2216,10 @@ package items
 					
 					i /= 10;
 				} while (i > 0);
+				
+				if (useSign) {
+					blockText.copyPixels(blockNumbersBMD, new Rectangle((negative ? 11 : 12) * 4, 0, 4, 5), new Point(16 - offsetX - 4, 10));
+				}
 			}
 
 			var bm:Bitmap = new Bitmap(blockText);

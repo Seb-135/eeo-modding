@@ -130,7 +130,7 @@
 			target.copyPixels(rotatedImage, rotatedImage.rect, dp);
 		}
 		
-		public function drawPoint(target:BitmapData, point:Point, frame:int = 0):void{
+		public function drawPoint(target:BitmapData, point:Point, frame:int = 0, transparent:Boolean = false):void{
 			currentImage = shadow ? sprImageShadow : sprImage;
 			
 			var rotatedImage:BitmapData = Player.rotateBitmapData(currentImage, RotateDeg);

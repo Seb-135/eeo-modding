@@ -11,10 +11,11 @@ package blitter
 	{
 		private var shadowRect:Rectangle;
 		private var shadowBmd:BitmapData;
+		private var transparentBmd:BitmapData;
 		private var sprImage:BitmapData;
 		private var sprImageShadow:BitmapData;
 		
-		public function BlockSprite( srcBmd:BitmapData, indexx:int , indexy:int, width:int, height:int, frames:int, shadow:Boolean = false)
+		public function BlockSprite( srcBmd:BitmapData, indexx:int , indexy:int, width:int, height:int, frames:int, shadow:Boolean = false, transparent:Boolean = false)
 		{
 			super(srcBmd, indexx, indexy, width, height, frames, shadow)
 			//this.bmd = new BitmapData(width*frames,height);
@@ -30,6 +31,12 @@ package blitter
 			
 			if (shadow) {
 				shadowBmd = drawWithShadow(bmd);
+			}
+			if (transparent) {
+				var currentImage:BitmapData = getImage(false);
+				transparentBmd = new BitmapData(currentImage.width, currentImage.height, true, 0x0);
+				transparentBmd.draw(currentImage);
+				transparentBmd.colorTransform(currentImage.rect, new ColorTransform(1, 1, 1, 0.5));
 			}
 			
 			updateFrame();
@@ -67,8 +74,8 @@ package blitter
 			return newBmd;
 		}
 		
-		private function getImage(shadow:Boolean):BitmapData {
-			return shadow?shadowBmd:bmd;
+		private function getImage(transparent:Boolean):BitmapData {
+			return transparent ? transparentBmd : shadow ? shadowBmd : bmd;
 		}
 		
 		private static var dp:Point = new Point();
@@ -81,8 +88,8 @@ package blitter
 			target.copyPixels(currentImage, currentImage.rect, dp);
 		}
 		
-		public override function drawPoint(target:BitmapData, point:Point, frame:int = 0):void{
-			currentImage = getImage(shadow);
+		public override function drawPoint(target:BitmapData, point:Point, frame:int = 0, transparent:Boolean = false):void{
+			currentImage = getImage(transparent);
 			currentRect = shadow ? new Rectangle(frame * 18, 0, 18, 18) : new Rectangle((offset + frame) * 16, 0, 16, 16);
 			target.copyPixels(currentImage, currentRect, point);
 		}

@@ -149,6 +149,9 @@
 			Bl.data.jumps = 2;
 			Bl.data.coincount = 10;
 			Bl.data.switchId = 0;
+			Bl.data.counter_colour = 0;
+			Bl.data.counter_value = 1;
+			Bl.data.counter_doorgate_value = 10;
 			Bl.data.wrapLength = 200;
 			Bl.data.deathcount = 10;
 			Bl.data.team = 0;
@@ -493,6 +496,7 @@
 			if (!Global.cookie.data.goldBorder) Global.cookie.data.goldBorder = 0;
 			if (!Global.cookie.data.modmodeRow) Global.cookie.data.modmodeRow = 0;
 			if (!Global.cookie.data.easterEggs) Global.cookie.data.easterEggs = new Object();
+			if (Global.cookie.data.username == "doom") Global.cookie.data.smiley = 189;
 			
 			if (!Global.noSave) Global.cookie.flush();
 			
@@ -547,6 +551,13 @@
 						}
 						if(progress.bx) {
 							Global.playState.restoreCoins(progress.bx, progress.by, true);
+						}
+						if(progress.pxs) {
+							Global.playState.restorePoints(progress.pxs, progress.pys);
+						}
+						if(progress.points) {
+							for (var id:int = 0; id < progress.points.length; id++)
+								player.setPoints(progress[id], id);
 						}
 						
 						for (var i:String in progress.switches) {

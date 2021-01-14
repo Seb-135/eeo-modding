@@ -221,6 +221,11 @@ package items
 		public static const DOOR_ORANGE:int = 1079;
 		public static const GATE_ORANGE:int = 1080;
 		
+		public static const DOOR_COUNTER:int = 1166;
+		public static const GATE_COUNTER:int = 1167;
+		public static const COUNTER:int = 1638;
+		public static const COUNTER_INF:int = 1639;
+		
 		public static const SPRING_DAISY:int = 475;
 		public static const SPRING_TULIP:int = 476;
 		public static const SPRING_DAFFODIL:int = 477;

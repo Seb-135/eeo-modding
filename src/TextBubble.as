@@ -14,6 +14,8 @@ package
 	
 	import states.PlayState;
 	
+	import items.ItemManager;
+	
 	/*
 	Used by the sign block to display user defined text when a player is on a sign block
 	*/
@@ -131,6 +133,19 @@ package
 			text = text.replace(/%username%/g, pl.name);
 			text = text.replace(/%Username%/g, pl.name.substring(0, 1).toUpperCase() + pl.name.substr(1));
 			text = text.replace(/%USERNAME%/g, pl.name.toUpperCase());
+			
+			text = text.replace(/%points([0-9]|[1-9][0-9])%/g, function():String 
+			{
+				var id:int = parseInt(arguments[1]);
+				return (id >= ItemManager.counterHexes.length ? arguments[0] : (pl.getPoints(id) || 0).toString());
+			});
+			
+			text = text.replace(/%pointname([0-9]|[1-9][0-9])%/g, function():String 
+			{
+				var id:int = parseInt(arguments[1]);
+				return (id >= ItemManager.counterHexNames.length ? arguments[0] : ItemManager.counterHexNames[id]);
+			});
+			
 			if (newline) text = text.replace(/\\n/g, "\n");
 			
 			return text;

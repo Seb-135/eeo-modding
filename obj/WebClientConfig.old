@@ -8,15 +8,15 @@
   <compiler>
     <define append="true">
       <name>CONFIG::debug</name>
-      <value>true</value>
-    </define>
-    <define append="true">
-      <name>CONFIG::release</name>
       <value>false</value>
     </define>
     <define append="true">
+      <name>CONFIG::release</name>
+      <value>true</value>
+    </define>
+    <define append="true">
       <name>CONFIG::timeStamp</name>
-      <value>'2020-12-23'</value>
+      <value>'2021-01-01'</value>
     </define>
     <define append="true">
       <name>CONFIG::air</name>
@@ -31,20 +31,21 @@
       <value>false</value>
     </define>
     <accessible>true</accessible>
-    <verbose-stacktraces>true</verbose-stacktraces>
+    <omit-trace-statements>true</omit-trace-statements>
+    <verbose-stacktraces>false</verbose-stacktraces>
     <source-path append="true">
-      <path-element>D:\flash\how much can i get rid of\src</path-element>
+      <path-element>D:\flash\EEO SWITCHES\src</path-element>
       <path-element>D:\Programs\FlashDevelop\Library\AS3\classes</path-element>
     </source-path>
     <library-path append="true">
-      <path-element>D:\flash\how much can i get rid of\swc\newui.swc</path-element>
-      <path-element>D:\flash\how much can i get rid of\swc\assets.swc</path-element>
-      <path-element>D:\flash\how much can i get rid of\swc\preloader.swc</path-element>
-      <path-element>D:\flash\how much can i get rid of\swc\greensock.swc</path-element>
+      <path-element>D:\flash\EEO SWITCHES\swc\newui.swc</path-element>
+      <path-element>D:\flash\EEO SWITCHES\swc\assets.swc</path-element>
+      <path-element>D:\flash\EEO SWITCHES\swc\preloader.swc</path-element>
+      <path-element>D:\flash\EEO SWITCHES\swc\greensock.swc</path-element>
     </library-path>
   </compiler>
   <file-specs>
-    <path-element>D:\flash\how much can i get rid of\src\WebClient.as</path-element>
+    <path-element>D:\flash\EEO SWITCHES\src\WebClient.as</path-element>
   </file-specs>
   <default-background-color>#000000</default-background-color>
   <default-frame-rate>60</default-frame-rate>

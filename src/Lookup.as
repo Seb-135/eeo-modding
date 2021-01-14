@@ -16,6 +16,7 @@ package
 		private var blinkLookup:Object = {}; //invisible arrows, halloween eyes etc
 		private var signLookup:Object = {};
 		private var npcLookup:Object = {};
+		private var counterLookup:Object = {};
 		
 		public function reset():void
 		{
@@ -27,6 +28,7 @@ package
 			blinkLookup = {};
 			signLookup = {};
 			npcLookup = {};
+			counterLookup = {};
 			resetSecrets();
 		}
 		
@@ -50,6 +52,7 @@ package
 			delete secretsLookup[lookupId];
 			delete blinkLookup[lookupId];
 			delete signLookup[lookupId];
+			delete counterLookup[lookupId];
 		}
 		
 		public function deleteBlink(x:int, y:int):void
@@ -194,6 +197,23 @@ package
 		{
 			return blinkLookup[getLookupId(x, y)] != null;
 		}
+		
+		public function setCounter(x:int, y:int, value:int, colourId:int):void
+		{
+			counterLookup[getLookupId(x, y)] = new CounterLookup(value, colourId);
+		}
+		
+		public function getCounter(x:int, y:int):CounterLookup
+		{
+			return counterLookup[getLookupId(x, y)] || new CounterLookup(0, 0);
+		}
+		
+		public function resetCounters():void
+		{
+			for each(var counter:CounterLookup in counterLookup)
+				counter.collected = false;
+		}
+		
 		
 		public function updateBlink(x:int, y:int, add:Number):Number
 		{

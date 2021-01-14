@@ -72,6 +72,17 @@ package
 								blocks[bId + "᎙0᎙" + rot + "᎙" + id + "᎙" + tar].Xs.push(x);
 								blocks[bId + "᎙0᎙" + rot + "᎙" + id + "᎙" + tar].Ys.push(y);
 							}
+						} else if (bId === ItemId.COUNTER_INF || bId === ItemId.COUNTER
+							|| bId === ItemId.DOOR_COUNTER || bId === ItemId.GATE_COUNTER) {
+							rot = Global.playState.world.lookup.getCounter(x, y).value;
+							tar = Global.playState.world.lookup.getCounter(x, y).colourIndex;
+							trace("counter", rot, tar);
+							if (blocks[bId + "᎙0᎙" + rot + "᎙" + tar] == undefined) {
+								blocks[bId + "᎙0᎙" + rot + "᎙" + tar] = {Xs: [x], Ys: [y]};
+							} else {
+								blocks[bId + "᎙0᎙" + rot + "᎙" + tar].Xs.push(x);
+								blocks[bId + "᎙0᎙" + rot + "᎙" + tar].Ys.push(y);
+							}
 						} else if (bId === ItemId.TEXT_SIGN) {
 							var sign_text:String = Global.playState.world.lookup.getTextSign(x, y).text;
 							var sign_type:int = Global.playState.world.lookup.getTextSign(x, y).type;
@@ -171,17 +182,17 @@ package
 						}
 						
 						var world:ZipEntry = new ZipEntry(RemoveCharacters(stringID + " - " + Global.worldNames[worldIndex] + " - " +
-						(Global.worldInfo.owner.toLowerCase() == "player" ? Global.cookie.data.username : Global.worldInfo.owner)) + ".eelvl");
+						(Global.worldInfo.owner.toLowerCase() == "player" ? Global.cookie.data.username : Global.worldInfo.owner)) + ".counterlvl");
 						zip.putNextEntry(world);
 						zip.write(Global.worlds[worldIndex]);
 					}
 					zip.finish();
 					fileReference.save(zip.byteArray, RemoveCharacters(Global.worldNames[0] + " - " +
-					(Global.worldInfo.owner.toLowerCase() == "player" ? Global.cookie.data.username : Global.worldInfo.owner)) + ".eelvls");
+					(Global.worldInfo.owner.toLowerCase() == "player" ? Global.cookie.data.username : Global.worldInfo.owner)) + ".counterlvls");
 				}
 				else {
 					fileReference.save(data, RemoveCharacters(Global.currentLevelname + " - " +
-					(Global.worldInfo.owner.toLowerCase() == "player" ? Global.cookie.data.username : Global.worldInfo.owner)) + ".eelvl");
+					(Global.worldInfo.owner.toLowerCase() == "player" ? Global.cookie.data.username : Global.worldInfo.owner)) + ".counterlvl");
 				}
 			}
 			else fileSaved();
